@@ -2,7 +2,7 @@
 Project Category: Advanced
 [Click Here to get Dataset](https://www.kaggle.com/datasets/sanjanchaudhari/spotify-dataset)
 
-![Spotify Logo]<img src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_with_text.svg" alt="Spotify Data Analysis Logo" width="150"/>
+![Spotify Logo](spotify_logo.png)
 
 ## Overview
 This project involves analyzing a Spotify dataset with various attributes about tracks, albums, and artists using **SQL**. It covers an end-to-end process of normalizing a denormalized dataset, performing SQL queries of varying complexity (easy, medium, and advanced), and optimizing query performance. The primary goals of the project are to practice advanced SQL skills and generate valuable insights from the dataset.
@@ -74,6 +74,18 @@ In advanced stages, the focus shifts to improving query performance. Some optimi
 3. Get the total number of comments for tracks where `licensed = TRUE`.
 4. Find all tracks that belong to the album type `single`.
 5. Count the total number of tracks by each artist.
+   ```sql
+  	SELECT * FROM SPOTIFY WHERE STREAM>1000000000;
+	
+	SELECT DISTINCT ALBUM,ARTIST FROM SPOTIFY ORDER BY 1;
+
+	SELECT sum(comments) FROM SPOTIFY WHERE LICENSED='true';
+
+	select * from spotify where album_type='single';
+
+	select artist,---1
+	count(*) as total_no_of_songs---2
+	from spotify group by artist order by 2;
 
 ### Medium Level
 1. Calculate the average danceability of tracks in each album.
@@ -81,35 +93,65 @@ In advanced stages, the focus shifts to improving query performance. Some optimi
 3. List all tracks along with their views and likes where `official_video = TRUE`.
 4. For each album, calculate the total views of all associated tracks.
 5. Retrieve the track names that have been streamed on Spotify more than YouTube.
+	```sql
+	select album,avg(danceability) from spotify group by album order by 2 desc;
+
+	select track,max(energy) from spotify group by 1 order by 2 desc limit 5;
+
+	select track,sum(views),sum(likes) from spotify where official_video='true' group by 1 order by 2 desc;
+
+	select album,track,sum(views) from spotify group by 1,2 order by 3 desc;
+
+	SELECT track FROM spotify 
+	WHERE most_played_on = 'Spotify'
 
 ### Advanced Level
 1. Find the top 3 most-viewed tracks for each artist using window functions.
 2. Write a query to find tracks where the liveness score is above the average.
 3. **Use a `WITH` clause to calculate the difference between the highest and lowest energy values for tracks in each album.**
-```sql
-WITH cte
-AS
-(SELECT 
-	album,
-	MAX(energy) as highest_energy,
-	MIN(energy) as lowest_energery
-FROM spotify
-GROUP BY 1
-)
-SELECT 
-	album,
-	highest_energy - lowest_energery as energy_diff
-FROM cte
-ORDER BY 2 DESC
-```
-   
-5. Find tracks where the energy-to-liveness ratio is greater than 1.2.
-6. Calculate the cumulative sum of likes for tracks ordered by the number of views, using window functions.
+4. Find tracks where the energy-to-liveness ratio is greater than 1.2.
+	```sql
+     select artist,track,sum(views) from spotify group by 1,2 order by 1,3 desc
+
+	with ranking_artist
+	as
+	(select
+	artist,track,sum(views) as total_view,
+	dense_rank() over(partition by artist order by sum(views) desc) as rank
+	from spotify
+	group by 1,2
+	order by 1,3 desc
+	)
+	Select * from ranking_artist
+	where rank<=3
+
+	select * from spotify
+	where liveness>(select avg(liveness) from spotify)
+
+	with cte
+	as
+	(select
+	album,max(energy) as highest_energy,min(energy) as lowest_energy
+	from spotify
+	group by 1)
+	select album,highest_energy-lowest_energy as energy_diff
+	from cte
+	order by 2 desc
+
+	SELECT
+    Artist,
+    Track
+	FROM
+    spotify
+	WHERE
+    (CASE
+            WHEN Liveness IS NULL OR Liveness = 0
+            THEN 0
+            ELSE Energy / Liveness
+        END
+    ) > 1.2;
 
 
-Here’s an updated section for your **Spotify Advanced SQL Project and Query Optimization** README, focusing on the query optimization task you performed. You can include the specific screenshots and graphs as described.
-
----
 
 ## Query Optimization Technique 
 
